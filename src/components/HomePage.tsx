@@ -32,7 +32,7 @@ export default function HomePage() {
           ))}
         </div>
         <div className="project-grid">
-          {visibleProjects.map((project) => <ProjectCard key={project.title} project={project} />)}
+          {visibleProjects.map((project, order) => <ProjectCard key={project.title} project={project} order={order} />)}
         </div>
       </section>
 

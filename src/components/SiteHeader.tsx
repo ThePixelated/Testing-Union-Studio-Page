@@ -115,10 +115,10 @@ export default function SiteHeader({ route }: { route: Route }) {
             {t.nav.network} <Chevron />
           </button>
           <div id="mobile-network" className={mobileNetworkOpen ? 'mobile-network is-open' : 'mobile-network'}>
-            <p className="network-root-label">{networkRoot.label}</p>
+            <NetworkEntry item={networkRoot} variant="root" onNavigate={closeAll} />
             {networkGroups.map((group) => (
               <div className="network-group" key={group.entity.id}>
-                <p className="network-group-title">{group.entity.label}</p>
+                <NetworkEntry item={group.entity} variant="group" onNavigate={closeAll} />
                 {group.items.map((item) => <NetworkEntry key={item.id} item={item} onNavigate={closeAll} />)}
               </div>
             ))}
@@ -129,11 +129,11 @@ export default function SiteHeader({ route }: { route: Route }) {
 
       {/* Sibling of the header (not a child) so its own backdrop blur works. */}
       <div id="network-panel" ref={panelRef} className={networkOpen ? 'network-panel is-open' : 'network-panel'} role="region" aria-label={t.network.label}>
-        <p className="network-root-label">{networkRoot.label}</p>
+        <NetworkEntry item={networkRoot} variant="root" onNavigate={closeAll} />
         <div className="network-columns">
           {networkGroups.map((group) => (
             <div className="network-group" key={group.entity.id}>
-              <p className="network-group-title">{group.entity.label}</p>
+              <NetworkEntry item={group.entity} variant="group" onNavigate={closeAll} />
               {group.items.map((item) => <NetworkEntry key={item.id} item={item} onNavigate={closeAll} />)}
             </div>
           ))}

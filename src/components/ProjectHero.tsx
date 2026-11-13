@@ -3,19 +3,12 @@ import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'rea
 import { featuredProjects } from '../data/projects'
 import type { ProjectSlide } from '../data/projects'
 import { assetUrl } from '../lib/assets'
+import { timing } from '../lib/carouselTiming'
 import { usePrefersReducedMotion } from '../hooks/useMediaQuery'
 import { useI18n } from '../i18n'
 
-/* ---- Auto-advance timing (ms) -------------------------------------------------
- * Image slide, mouse away ........ IMAGE_DURATION
- * Video slide, mouse away ........ wait until the video ends, then VIDEO_EXTRA
- * Mouse over the hero ............ HOVER_DURATION (counted from the moment the mouse enters;
- *                                  for a video: from the moment it ends)
- * Paused (PAUSE button / keyboard focus): no auto-advance at all.
- * ----------------------------------------------------------------------------- */
-const IMAGE_DURATION = 5000
-const VIDEO_EXTRA = 2500
-const HOVER_DURATION = 30000
+/* Auto-advance timing lives in src/lib/carouselTiming.ts (image 4 s, hover 7 s, video end + 2.5 s).
+ * Paused (PAUSE button / keyboard focus): no auto-advance at all. */
 /** Minimum horizontal travel (px) for a touch swipe to change slides. */
 const SWIPE_DISTANCE = 50
 
@@ -158,7 +151,7 @@ export default function ProjectHero() {
   useEffect(() => {
     if (paused) return
     if (videoTimed && !videoEnded) return // wait for the video to finish
-    const delay = hovering ? HOVER_DURATION : videoTimed ? VIDEO_EXTRA : IMAGE_DURATION
+    const delay = hovering ? timing.hover : videoTimed ? timing.videoExtra : timing.image
     const timer = window.setTimeout(goNext, delay)
     return () => window.clearTimeout(timer)
   }, [active, paused, hovering, videoTimed, videoEnded, goNext])
