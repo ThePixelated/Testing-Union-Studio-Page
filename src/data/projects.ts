@@ -8,6 +8,14 @@ export type ProjectSlide = {
   artwork: string
   href: string
   featured: boolean
+  /**
+   * Optional real media (paths are relative to /public, e.g. 'media/animal-chase.mp4').
+   * Without media the slide falls back to the CSS artwork. Shape mirrors the planned Sanity Hero Slide.
+   */
+  mediaType?: 'image' | 'video'
+  image?: string
+  video?: string
+  poster?: string
 }
 
 export const featuredProjects: ProjectSlide[] = [

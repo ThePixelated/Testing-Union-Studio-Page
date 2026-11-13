@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import ProjectHero from './components/ProjectHero'
+import Logo from './components/Logo'
+import SiteHeader from './components/SiteHeader'
 import { projects } from './data/projects'
 
 const categories = ['All', 'Games', 'XR', 'Apps', 'Experiments']
@@ -10,18 +12,7 @@ function App() {
 
   return (
     <>
-      <div className="network-bar">
-        <a href="#top" className="network-brand"><span className="network-mark">U</span> UNION NETWORK</a>
-        <nav aria-label="UNION network"><a href="#interactive">Interactive</a><a href="#studio">Studio</a><a href="#network">Network</a></nav>
-      </div>
-
-      <header className="site-header" id="top">
-        <a className="wordmark" href="#top">UNION<span>.</span></a>
-        <nav className="main-nav" aria-label="Main navigation">
-          <a href="#works">Works</a><a href="#playground">Playground</a><a href="#about">About</a><a href="#contact">Contact</a>
-        </nav>
-        <a className="header-cta" href="#contact">Let's talk <span>↗</span></a>
-      </header>
+      <SiteHeader />
 
       <main>
         <ProjectHero />
@@ -78,10 +69,10 @@ function App() {
           </div>
         </section>
 
-        <section className="about-details section" id="about-details">
+        <section className="about-details-band" id="about-details"><div className="about-details section">
           <div><p className="eyebrow">04 / The studio</p><h2>Built around<br />curiosity.</h2></div>
           <div><p className="about-statement">We believe technology becomes more meaningful when people can experience it, interact with it, and make it their own.</p><p className="about-body">UNION STUDIO is a creative technology studio focused on interactive digital experiences. Explore our approach, background, and the wider UNION network.</p><a className="text-link dark-link" href="#contact">More about UNION STUDIO ↗</a></div>
-        </section>
+        </div></section>
 
         <section className="contact-section" id="contact">
           <p className="eyebrow">05 / Start a conversation</p><h2>Have an idea?<br />Let's make it <em>real.</em></h2><p>Have a project, collaboration, or something interesting in mind?</p><a className="button button-light" href="mailto:hello@unionstudio.example">Get in touch ↗</a>
@@ -90,7 +81,7 @@ function App() {
       </main>
 
       <footer className="site-footer" id="network">
-        <div><a className="wordmark" href="#top">UNION<span>.</span></a><p>Part of UNION INTERACTIVE</p></div>
+        <div><a className="wordmark" href="#top" aria-label="UNION STUDIO — back to top"><Logo /></a><p>Part of UNION INTERACTIVE</p></div>
         <div className="footer-links"><a href="#works">Works</a><a href="#playground">Playground</a><a href="#about">About</a><a href="#contact">Contact</a></div>
         <p className="copyright">© {new Date().getFullYear()} UNION STUDIO · CONCEPT BUILD</p>
       </footer>
