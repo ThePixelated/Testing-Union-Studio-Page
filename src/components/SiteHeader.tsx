@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
+import type { MouseEvent } from 'react'
 import { useScrolled } from '../hooks/useScrolled'
 import { networkGroups, networkRoot } from '../data/network'
+import { useI18n } from '../i18n'
+import type { Route } from '../hooks/useHashRoute'
+import LanguageSwitch from './LanguageSwitch'
 import Logo from './Logo'
 import NetworkEntry from './NetworkEntry'
 
 const links = [
-  { href: '#works', label: 'Works' },
-  { href: '#playground', label: 'Playground' },
-  { href: '#about', label: 'About' },
-  { href: '#contact', label: 'Contact' },
-]
+  { key: 'works', href: '#works' },
+  { key: 'playground', href: '#playground' },
+  { key: 'about', href: '#/about' },
+  { key: 'contact', href: '#contact' },
+] as const
 
 function Chevron() {
   return (
@@ -19,7 +23,8 @@ function Chevron() {
   )
 }
 
-export default function SiteHeader() {
+export default function SiteHeader({ route }: { route: Route }) {
+  const { t } = useI18n()
   const scrolled = useScrolled(40)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileNetworkOpen, setMobileNetworkOpen] = useState(false)
@@ -54,14 +59,29 @@ export default function SiteHeader() {
     setNetworkOpen(false)
   }
 
+  // The contact section lives on every page; from the About page just scroll to it instead of leaving the page.
+  const onContactClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    closeAll()
+    if (route === 'about') {
+      event.preventDefault()
+      document.getElementById('contact')?.scrollIntoView()
+    }
+  }
+
+  const linkProps = (link: (typeof links)[number]) => ({
+    href: link.href,
+    'aria-current': link.key === 'about' && route === 'about' ? ('page' as const) : undefined,
+    onClick: link.key === 'contact' ? onContactClick : closeAll,
+  })
+
   return (
     <>
       <header className={scrolled ? 'site-header is-scrolled' : 'site-header'} id="top">
-        <a className="wordmark" href="#top" aria-label="UNION STUDIO — back to top">
+        <a className="wordmark" href="#top" aria-label={t.nav.home}>
           <Logo />
         </a>
-        <nav className="main-nav" aria-label="Main navigation">
-          {links.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}
+        <nav className="main-nav" aria-label={t.nav.mainNav}>
+          {links.map((link) => <a key={link.key} {...linkProps(link)}>{t.nav[link.key]}</a>)}
         </nav>
         <div className="header-actions">
           <button
@@ -71,27 +91,28 @@ export default function SiteHeader() {
             aria-controls="network-panel"
             onClick={() => setNetworkOpen((open) => !open)}
           >
-            Network <Chevron />
+            {t.nav.network} <Chevron />
           </button>
-          <a className="header-cta" href="#contact">Let's talk <span>↗</span></a>
+          <a className="header-cta" href="#contact" onClick={onContactClick}>{t.nav.talk} <span>↗</span></a>
           <button
             className="menu-toggle"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             onClick={() => setMenuOpen((open) => !open)}
           >
-            {menuOpen ? 'Close' : 'Menu'}
+            {menuOpen ? t.nav.close : t.nav.menu}
           </button>
+          <LanguageSwitch />
         </div>
-        <nav id="mobile-menu" className={menuOpen ? 'mobile-menu is-open' : 'mobile-menu'} aria-label="Mobile navigation">
-          {links.map((link) => <a key={link.href} href={link.href} onClick={closeAll}>{link.label}</a>)}
+        <nav id="mobile-menu" className={menuOpen ? 'mobile-menu is-open' : 'mobile-menu'} aria-label={t.nav.mobileNav}>
+          {links.map((link) => <a key={link.key} {...linkProps(link)}>{t.nav[link.key]}</a>)}
           <button
             className="mobile-network-toggle"
             aria-expanded={mobileNetworkOpen}
             aria-controls="mobile-network"
             onClick={() => setMobileNetworkOpen((open) => !open)}
           >
-            Network <Chevron />
+            {t.nav.network} <Chevron />
           </button>
           <div id="mobile-network" className={mobileNetworkOpen ? 'mobile-network is-open' : 'mobile-network'}>
             <p className="network-root-label">{networkRoot.label}</p>
@@ -102,12 +123,12 @@ export default function SiteHeader() {
               </div>
             ))}
           </div>
-          <a className="mobile-cta" href="#contact" onClick={closeAll}>Let's talk ↗</a>
+          <a className="mobile-cta" href="#contact" onClick={onContactClick}>{t.nav.talk} ↗</a>
         </nav>
       </header>
 
       {/* Sibling of the header (not a child) so its own backdrop blur works. */}
-      <div id="network-panel" ref={panelRef} className={networkOpen ? 'network-panel is-open' : 'network-panel'} role="region" aria-label="UNION network">
+      <div id="network-panel" ref={panelRef} className={networkOpen ? 'network-panel is-open' : 'network-panel'} role="region" aria-label={t.network.label}>
         <p className="network-root-label">{networkRoot.label}</p>
         <div className="network-columns">
           {networkGroups.map((group) => (

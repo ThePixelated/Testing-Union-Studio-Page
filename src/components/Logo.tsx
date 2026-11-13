@@ -8,7 +8,7 @@ export default function Logo() {
   return (
     <span className="logo-fallback">
       <img src={assetUrl('android-chrome-192x192.png')} alt="" width={30} height={30} />
-      <span>UNION Studio</span>
+      <span>UNION STUDIO</span>
     </span>
   )
 }

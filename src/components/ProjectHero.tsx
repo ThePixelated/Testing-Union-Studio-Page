@@ -4,15 +4,27 @@ import { featuredProjects } from '../data/projects'
 import type { ProjectSlide } from '../data/projects'
 import { assetUrl } from '../lib/assets'
 import { usePrefersReducedMotion } from '../hooks/useMediaQuery'
+import { useI18n } from '../i18n'
 
-/** Time each slide stays on screen (ms) before auto-fading to the next one. */
-const SLIDE_DURATION = 5000
+/* ---- Auto-advance timing (ms) -------------------------------------------------
+ * Image slide, mouse away ........ IMAGE_DURATION
+ * Video slide, mouse away ........ wait until the video ends, then VIDEO_EXTRA
+ * Mouse over the hero ............ HOVER_DURATION (counted from the moment the mouse enters;
+ *                                  for a video: from the moment it ends)
+ * Paused (PAUSE button / keyboard focus): no auto-advance at all.
+ * ----------------------------------------------------------------------------- */
+const IMAGE_DURATION = 5000
+const VIDEO_EXTRA = 2500
+const HOVER_DURATION = 30000
 /** Minimum horizontal travel (px) for a touch swipe to change slides. */
 const SWIPE_DISTANCE = 50
 
 const slideCount = featuredProjects.length
 
 type SlideState = { active: number; prev: number | null }
+type MediaIssue = 'failed' | 'blocked'
+
+const isVideoSlide = (slide: ProjectSlide) => slide.mediaType === 'video' && Boolean(slide.video)
 
 function Chevron({ direction }: { direction: 'left' | 'right' }) {
   return (
@@ -30,36 +42,44 @@ function SlideVisual({
   slide,
   active,
   mounted,
-  reducedMotion,
+  playing,
   failed,
   onFail,
+  onBlocked,
+  onEnded,
 }: {
   slide: ProjectSlide
   active: boolean
   mounted: boolean
-  reducedMotion: boolean
+  playing: boolean
   failed: boolean
   onFail: (id: string) => void
+  onBlocked: (id: string) => void
+  onEnded: (id: string) => void
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [loaded, setLoaded] = useState(false)
 
-  const videoSrc = slide.mediaType === 'video' ? slide.video : undefined
+  const videoSrc = isVideoSlide(slide) ? slide.video : undefined
   const imageSrc = slide.mediaType === 'video' ? undefined : (slide.image ?? slide.poster)
   const showMedia = mounted && !failed && Boolean(videoSrc || imageSrc)
 
-  // Only the active slide plays; reduced-motion users get the poster frame only.
+  // A video starts from the beginning every time its slide becomes active.
+  useEffect(() => {
+    const video = videoRef.current
+    if (video && active) video.currentTime = 0
+  }, [active, showMedia])
+
+  // Play only while the slide is active, autoplay is allowed and the user hasn't paused.
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
-    if (active && !reducedMotion) {
-      video.play().catch(() => {
-        /* autoplay blocked: poster stays visible, that's fine */
-      })
+    if (playing) {
+      video.play().catch(() => onBlocked(slide.id))
     } else {
       video.pause()
     }
-  }, [active, reducedMotion, showMedia])
+  }, [playing, showMedia, slide.id, onBlocked])
 
   return (
     <>
@@ -76,11 +96,11 @@ function SlideVisual({
           src={assetUrl(videoSrc)}
           poster={slide.poster ? assetUrl(slide.poster) : undefined}
           muted
-          loop
           playsInline
           disablePictureInPicture
           preload={active ? 'auto' : 'metadata'}
           onLoadedData={() => setLoaded(true)}
+          onEnded={() => onEnded(slide.id)}
           onError={() => onFail(slide.id)}
         />
       )}
@@ -100,19 +120,23 @@ function SlideVisual({
 
 export default function ProjectHero() {
   const reducedMotion = usePrefersReducedMotion()
+  const { lang, t } = useI18n()
   const [{ active, prev }, setSlides] = useState<SlideState>({ active: 0, prev: null })
   const [userPaused, setUserPaused] = useState(false)
   const [hovering, setHovering] = useState(false)
   const [focusing, setFocusing] = useState(false)
-  const [failedMedia, setFailedMedia] = useState<Record<string, boolean>>({})
+  const [mediaIssues, setMediaIssues] = useState<Record<string, MediaIssue>>({})
+  const [endedId, setEndedId] = useState<string | null>(null)
   const swipeStart = useRef<{ x: number; y: number } | null>(null)
 
   const project = featuredProjects[active]
   const nextIndex = (active + 1) % slideCount
+  const previousIndex = (active - 1 + slideCount) % slideCount
 
-  // Autoplay is off for reduced-motion users and when there is nothing to rotate to.
-  const autoplay = slideCount > 1 && !reducedMotion
-  const paused = !autoplay || userPaused || hovering || focusing
+  // Reduced motion no longer switches autoplay off (a cross-fade is not movement). It only stops videos from autoplaying.
+  const paused = slideCount < 2 || userPaused || focusing
+  const videoTimed = isVideoSlide(project) && !mediaIssues[project.id] && !reducedMotion
+  const videoEnded = endedId === project.id
 
   const goNext = useCallback(() => setSlides((c) => (slideCount < 2 ? c : { active: (c.active + 1) % slideCount, prev: c.active })), [])
   const goPrev = useCallback(
@@ -120,26 +144,36 @@ export default function ProjectHero() {
     [],
   )
 
-  // Single source of truth for the project colour: any component (navbar now, more later) can read var(--ambient).
+  // Single source of truth for the project colour: any component (navbar, section edge…) can read var(--ambient).
   useEffect(() => {
     document.documentElement.style.setProperty('--ambient', project.ambient)
   }, [project.ambient])
 
-  const markFailed = useCallback((id: string) => setFailedMedia((current) => ({ ...current, [id]: true })), [])
+  // "Video ended" belongs to one slide visit: forget it whenever the slide changes.
+  useEffect(() => {
+    setEndedId(null)
+  }, [active])
 
-  // Auto-advance. Any change of slide (auto or manual) restarts the countdown; pausing clears it.
+  // Auto-advance (see the timing table at the top). Restarts whenever slide, hover or pause state changes.
   useEffect(() => {
     if (paused) return
-    const timer = window.setTimeout(goNext, SLIDE_DURATION)
+    if (videoTimed && !videoEnded) return // wait for the video to finish
+    const delay = hovering ? HOVER_DURATION : videoTimed ? VIDEO_EXTRA : IMAGE_DURATION
+    const timer = window.setTimeout(goNext, delay)
     return () => window.clearTimeout(timer)
-  }, [active, paused, goNext])
+  }, [active, paused, hovering, videoTimed, videoEnded, goNext])
+
+  const markIssue = useCallback((id: string, issue: MediaIssue) => setMediaIssues((current) => ({ ...current, [id]: issue })), [])
+  const onFail = useCallback((id: string) => markIssue(id, 'failed'), [markIssue])
+  const onBlocked = useCallback((id: string) => markIssue(id, 'blocked'), [markIssue])
+  const onEnded = useCallback((id: string) => setEndedId(id), [])
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === 'ArrowRight') goNext()
     else if (event.key === 'ArrowLeft') goPrev()
   }
 
-  // Keyboard focus pauses autoplay; mouse-click focus does not (otherwise clicking a dot would freeze the carousel).
+  // Keyboard focus pauses autoplay; mouse-click focus does not.
   const onFocus = (event: FocusEvent<HTMLElement>) => {
     if (event.target.matches(':focus-visible')) setFocusing(true)
   }
@@ -165,12 +199,10 @@ export default function ProjectHero() {
     }
   }
 
-  const previousIndex = (active - 1 + slideCount) % slideCount
-
   return (
     <section
       className="hero"
-      aria-label="Featured projects"
+      aria-label={t.hero.carousel}
       aria-roledescription="carousel"
       onKeyDown={onKeyDown}
       onFocus={onFocus}
@@ -199,16 +231,18 @@ export default function ProjectHero() {
         {featuredProjects.map((slide, index) => {
           const isActive = index === active
           const mounted = isActive || index === prev || index === nextIndex
-          const layerClass = ['hero-slide', isActive ? 'is-active' : index === prev ? 'is-prev' : ''].filter(Boolean).join(' ')
+          const layerClass = ['hero-slide', slide.artwork, isActive ? 'is-active' : index === prev ? 'is-prev' : ''].filter(Boolean).join(' ')
           return (
             <div key={slide.id} className={layerClass} style={{ '--slide-ambient': slide.ambient } as CSSProperties}>
               <SlideVisual
                 slide={slide}
                 active={isActive}
                 mounted={mounted}
-                reducedMotion={reducedMotion}
-                failed={Boolean(failedMedia[slide.id])}
-                onFail={markFailed}
+                playing={isActive && !reducedMotion && !userPaused}
+                failed={mediaIssues[slide.id] === 'failed'}
+                onFail={onFail}
+                onBlocked={onBlocked}
+                onEnded={onEnded}
               />
             </div>
           )
@@ -219,10 +253,10 @@ export default function ProjectHero() {
 
       {slideCount > 1 && (
         <>
-          <button className="hero-side hero-side-prev" aria-label={`Previous project: ${featuredProjects[previousIndex].title}`} onClick={goPrev}>
+          <button className="hero-side hero-side-prev" aria-label={`${t.hero.previous}: ${featuredProjects[previousIndex].title}`} onClick={goPrev}>
             <Chevron direction="left" />
           </button>
-          <button className="hero-side hero-side-next" aria-label={`Next project: ${featuredProjects[nextIndex].title}`} onClick={goNext}>
+          <button className="hero-side hero-side-next" aria-label={`${t.hero.next}: ${featuredProjects[nextIndex].title}`} onClick={goNext}>
             <Chevron direction="right" />
           </button>
         </>
@@ -230,30 +264,40 @@ export default function ProjectHero() {
 
       <div className="hero-inner">
         <div className="hero-intro">
-          <p className="eyebrow">Independent creative technology studio</p>
-          <h1>We build worlds,<br /><em>experiences</em> & things.</h1>
-          <p className="hero-subtitle">Turning ideas into interactive experiences — from games and XR to digital applications.</p>
+          <p className="eyebrow">{t.hero.eyebrow}</p>
+          <h1>{t.hero.line1}<br /><em>{t.hero.em}</em> {t.hero.rest}</h1>
+          <p className="hero-subtitle">{t.hero.subtitle}</p>
         </div>
 
         <div className="hero-bottom">
-          <a className="button button-light" href="#works">Explore our work <span>↗</span></a>
+          <a className="button button-light" href="#works">{t.hero.explore} <span>↗</span></a>
+          {/* Every slide's copy is stacked in one grid cell: the old text fades out, then the new one fades in. */}
           <div className="featured-copy" aria-live={userPaused ? 'polite' : 'off'}>
-            <div className="featured-copy-inner" key={project.id}>
-              <div className="eyebrow">{project.category} <span className="status-dot" /> {project.status}</div>
-              <h2>{project.title}</h2>
-              <p>{project.description}</p>
-              <a className="text-link" href={project.href}>View project <span>↗</span></a>
-            </div>
+            {featuredProjects.map((slide, index) => (
+              <div key={slide.id} className={index === active ? 'featured-copy-item is-active' : 'featured-copy-item'} aria-hidden={index !== active}>
+                <div className="eyebrow">{slide.category[lang]} <span className="status-dot" /> {slide.status[lang]}</div>
+                <h2>{slide.title}</h2>
+                <p>{slide.description[lang]}</p>
+                <a className="text-link" href={slide.href} tabIndex={index === active ? undefined : -1}>{t.hero.viewProject} <span>↗</span></a>
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="hero-controls">
-          {autoplay && (
+          {slideCount > 1 && (
             <button className="pause-button" aria-pressed={userPaused} onClick={() => setUserPaused((value) => !value)}>
-              {userPaused ? 'PLAY' : 'PAUSE'}
+              {userPaused ? t.hero.play : t.hero.pause}
             </button>
           )}
         </div>
+      </div>
+
+      {/* Organic bottom edge: the hero dissolves into the next section instead of ending on a straight line. */}
+      <div className="hero-edge" aria-hidden="true">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+          <path d="M0 78C130 40 250 14 400 50S650 116 830 78S1110 6 1265 38S1400 84 1440 64V120H0Z" />
+        </svg>
       </div>
     </section>
   )

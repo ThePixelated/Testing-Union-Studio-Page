@@ -12,10 +12,12 @@
 Project ambient colours (hero glow) are content-driven per slide and are not part of the palette.
 
 ## Font roles (change in `:root` of `styles.css`)
-| Variable | Role | Currently (placeholder) |
-|---|---|---|
-| `--font-display` | Hero headline, section titles, project titles, network headings | Manrope |
-| `--font-body` | Paragraphs, navigation, buttons, UI text | Manrope |
-| `--font-mono` | Small labels, metadata, eyebrows, status tags | DM Mono |
+All three roles currently use **Alan Sans** (variable font, weights 300–900, Latin, SIL OFL — free for commercial/web use). Loaded from Google Fonts via the `@import` at the top of `styles.css`.
 
-Self-host fonts as `.woff2` in `public/fonts/` with `@font-face` (use `font-display: swap`); remove the Google Fonts `@import` at the top of `styles.css` when switching.
+| Variable | Role |
+|---|---|
+| `--font-display` | Hero headline, section titles, project titles, network headings |
+| `--font-body` | Paragraphs, navigation, buttons, UI text |
+| `--font-mono` | Small labels, metadata, eyebrows, status tags |
+
+To self-host instead (no third-party request, faster): `npm i @fontsource-variable/alan-sans`, add `import '@fontsource-variable/alan-sans'` in `main.tsx`, set the three variables to `'Alan Sans Variable', system-ui, sans-serif`, and delete the `@import` line.
