@@ -17,16 +17,16 @@ Proposed content types:
 2. Hero Slide
 3. Project
 4. Project Category
-5. Playground Demo
-6. Capabilities
-7. About Page
-8. Contact Settings
+5. Capabilities / Services
+6. About Page
+7. Contact Settings
+
+(Playground Demo was removed from the plan on 14 Nov 2026.)
 
 ### Relationships
 
 - A Hero Slide references one Project.
 - A Project belongs to one or more Categories.
-- A Project can reference one or more Playground Demos.
 - Site Settings contains global navigation, footer and brand/network switcher settings.
 
 ## Frontend data flow

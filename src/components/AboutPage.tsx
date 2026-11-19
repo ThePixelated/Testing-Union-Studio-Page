@@ -9,7 +9,7 @@ export default function AboutPage() {
   const { t } = useI18n()
   return (
     <>
-      <section className="about-page-hero">
+      <section className="page-hero">
         <div className="section">
           <a className="back-link" href="#top">← {t.aboutPage.back}</a>
           <p className="eyebrow">{t.aboutPage.eyebrow}</p>

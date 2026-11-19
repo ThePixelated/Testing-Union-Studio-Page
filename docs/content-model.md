@@ -39,17 +39,6 @@ This is a planning document. Schemas are not yet implemented.
 - sortOrder
 - enabled
 
-## Playground Demo
-- title
-- slug
-- category
-- project (optional reference)
-- demoType (web-embed, web-build, external-link, video-preview, device-preview)
-- embedUrl (only where appropriate)
-- fallbackMedia
-- compatibilityNotes
-- enabled
-
 ## About Page
 - introduction
 - studioStory

@@ -4,6 +4,6 @@
  * transparent background) and set the path below. While `src` is null, a placeholder (icon + text) is shown.
  */
 export const logo: { src: string | null; alt: string } = {
-  src: 'brand/Web-Home-Logo.svg',
+  src: 'brand/HomeLogo.svg',
   alt: 'UNION STUDIO',
 }

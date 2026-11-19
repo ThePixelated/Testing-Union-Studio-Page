@@ -5,7 +5,7 @@
 |---|---|---|
 | `--navy` | `#16264D` | Brand colour: navbar glass, hero base, capabilities section, cards, contact glow |
 | `--white` | `#FFFFFF` | Text on dark, light sections, buttons |
-| `--graphite` | `#323232` | Playground section, text on light sections |
+| `--graphite` | `#323232` | Text on light sections (About band, About preview) |
 | `--black` | `#000000` | Page background, hero base, footer |
 | `--accent` | `var(--white)` | Small accents (status dot, link arrows, focus ring). Change this one line if an accent colour is added later. |
 

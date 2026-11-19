@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FocusEvent, KeyboardEvent, PointerEvent } from 'react'
-import type { CardSlide, GridProject } from '../data/projects'
+import type { CardSlide, Project } from '../data/projects'
 import { usePrefersReducedMotion } from '../hooks/useMediaQuery'
 import { assetUrl } from '../lib/assets'
 import { timing } from '../lib/carouselTiming'
@@ -76,7 +76,7 @@ function CardSlideView({
   )
 }
 
-export default function ProjectCard({ project, order = 0 }: { project: GridProject; order?: number }) {
+export default function ProjectCard({ project, order = 0 }: { project: Project; order?: number }) {
   const { lang, t } = useI18n()
   const reducedMotion = usePrefersReducedMotion()
   const [index, setIndex] = useState(0)
@@ -182,7 +182,7 @@ export default function ProjectCard({ project, order = 0 }: { project: GridProje
           )
         })}
         {/* The whole picture is the link. Arrows are siblings (not children) so we never nest buttons inside a link. */}
-        <a className="project-link" href="#contact" aria-label={`${t.works.view} ${project.title}`} />
+        <a className="project-link" href={`#/work/${project.slug}`} aria-label={`${t.works.view} ${project.title}`} />
         <span className="art-caption">{t.works.caption}</span>
         {count > 1 && (
           <>
@@ -197,7 +197,7 @@ export default function ProjectCard({ project, order = 0 }: { project: GridProje
         <span className="sr-only" aria-live="off">{index + 1} / {count}</span>
       </div>
       <div className="project-meta">
-        <div><h3>{project.title}</h3><p>{t.works.filters[project.filter]} · {project.status[lang]}</p></div>
+        <div><h3>{project.title}</h3><p>{t.works.filters[project.category]} · {project.status[lang]}</p></div>
         <span>↗</span>
       </div>
     </article>

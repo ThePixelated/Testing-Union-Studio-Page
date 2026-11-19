@@ -9,8 +9,7 @@ import Logo from './Logo'
 import NetworkEntry from './NetworkEntry'
 
 const links = [
-  { key: 'works', href: '#works' },
-  { key: 'playground', href: '#playground' },
+  { key: 'works', href: '#/work' },
   { key: 'about', href: '#/about' },
   { key: 'contact', href: '#contact' },
 ] as const
@@ -59,10 +58,10 @@ export default function SiteHeader({ route }: { route: Route }) {
     setNetworkOpen(false)
   }
 
-  // The contact section lives on every page; from the About page just scroll to it instead of leaving the page.
+  // The contact section lives on every page; from any inner page just scroll to it instead of leaving the page.
   const onContactClick = (event: MouseEvent<HTMLAnchorElement>) => {
     closeAll()
-    if (route === 'about') {
+    if (route.name !== 'home') {
       event.preventDefault()
       document.getElementById('contact')?.scrollIntoView()
     }
@@ -70,7 +69,7 @@ export default function SiteHeader({ route }: { route: Route }) {
 
   const linkProps = (link: (typeof links)[number]) => ({
     href: link.href,
-    'aria-current': link.key === 'about' && route === 'about' ? ('page' as const) : undefined,
+    'aria-current': (link.key === 'about' && route.name === 'about') || (link.key === 'works' && (route.name === 'work' || route.name === 'project')) ? ('page' as const) : undefined,
     onClick: link.key === 'contact' ? onContactClick : closeAll,
   })
 

@@ -10,8 +10,7 @@ export default function SiteFooter() {
         <p>{t.footer.part}</p>
       </div>
       <div className="footer-links">
-        <a href="#works">{t.nav.works}</a>
-        <a href="#playground">{t.nav.playground}</a>
+        <a href="#/work">{t.nav.works}</a>
         <a href="#/about">{t.nav.about}</a>
         <a href="#contact">{t.nav.contact}</a>
       </div>

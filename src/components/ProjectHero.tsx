@@ -263,12 +263,12 @@ export default function ProjectHero() {
         </div>
 
         <div className="hero-bottom">
-          <a className="button button-light" href="#works">{t.hero.explore} <span>↗</span></a>
+          <a className="button button-light" href="#/work">{t.hero.explore} <span>↗</span></a>
           {/* Every slide's copy is stacked in one grid cell: the old text fades out, then the new one fades in. */}
           <div className="featured-copy" aria-live={userPaused ? 'polite' : 'off'}>
             {featuredProjects.map((slide, index) => (
               <div key={slide.id} className={index === active ? 'featured-copy-item is-active' : 'featured-copy-item'} aria-hidden={index !== active}>
-                <div className="eyebrow">{slide.category[lang]} <span className="status-dot" /> {slide.status[lang]}</div>
+                <div className="eyebrow">{t.works.filters[slide.category]} <span className="status-dot" /> {slide.status[lang]}</div>
                 <h2>{slide.title}</h2>
                 <p>{slide.description[lang]}</p>
                 <a className="text-link" href={slide.href} tabIndex={index === active ? undefined : -1}>{t.hero.viewProject} <span>↗</span></a>
