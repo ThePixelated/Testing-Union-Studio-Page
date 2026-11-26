@@ -1,4 +1,7 @@
 import type { Lang } from '../i18n'
+import { toLocalized } from '../content/localize'
+import { snapshot } from '../content/snapshot'
+import type { RawProject, RawSlide } from '../content/types'
 
 /** A string with one version per language. Project names are proper nouns and stay plain strings. */
 export type Localized = Record<Lang, string>
@@ -8,12 +11,12 @@ export type ProjectCategory = 'ARLearning' | 'ARBrand' | 'Games'
 export type FilterKey = 'All' | ProjectCategory
 /** Set only when confirmed: shown as an honest label on the project page. */
 export type ProjectOrigin = 'client' | 'self-initiated'
+export type ProjectStatus = 'portfolio' | 'prototype' | 'in-development' | 'released'
 
 /**
  * One slide inside a card / the project cover.
- * Placeholder slides use CSS artwork (`artwork` + `variant`). Replace them with real media:
- *   { image: 'media/simlab-1.jpg' }  or  { video: 'media/simlab.mp4', poster: 'media/simlab.jpg' }
- * Paths are relative to /public.
+ * Without real media a slide is CSS artwork (`artwork` + `variant`); with media it is an image or a video.
+ * Media URLs come from the CMS (absolute) or from /public (relative path).
  */
 export type CardSlide = {
   artwork?: string
@@ -31,9 +34,9 @@ export type Project = {
   ambient: string
   artwork: string
   slides: CardSlide[]
-  /** Appears in the Home hero carousel (order = order in the `projects` array). */
+  /** Appears in the Home hero carousel. */
   hero?: boolean
-  /** Appears in the "Selected works" teaser on Home (order = order in the array). */
+  /** Appears in the "Selected works" teaser on Home. */
   featured?: boolean
   /* ---- optional details: the project page only renders what exists ---- */
   summary?: Localized
@@ -44,20 +47,27 @@ export type Project = {
   tools?: string[]
   links?: { label: Localized; href: string }[]
   story?: { challenge?: Localized; approach?: Localized; result?: Localized }
-  /** Optional hero media (paths relative to /public). */
+  /** Hero media (derived from the first media slide). */
   mediaType?: 'image' | 'video'
   image?: string
   video?: string
   poster?: string
 }
 
-const placeholderSlides = (artwork: string): CardSlide[] => [
-  { artwork, variant: 1 },
-  { artwork, variant: 2 },
-  { artwork, variant: 3 },
-]
+/* ------------------------------------------------------------------------------------------
+ * The project list comes from the CMS snapshot (src/content/snapshot.ts, refreshed from Sanity
+ * by scripts/fetch-content.mjs). Edit projects in the Studio, not here.
+ * ---------------------------------------------------------------------------------------- */
 
-const portfolioStatus: Localized = { en: 'Portfolio project', id: 'Proyek portofolio' }
+const statusLabels: Record<ProjectStatus, Localized> = {
+  portfolio: { en: 'Portfolio project', id: 'Proyek portofolio' },
+  prototype: { en: 'Prototype', id: 'Prototipe' },
+  'in-development': { en: 'In development', id: 'Dalam pengembangan' },
+  released: { en: 'Released', id: 'Sudah rilis' },
+}
+
+const categoryAmbient: Record<ProjectCategory, string> = { ARLearning: '#5f86a8', ARBrand: '#b06a82', Games: '#6f8f5a' }
+const artworkCycle = ['art-spatial', 'art-animal', 'art-radiant', 'art-experiment']
 
 /** Shown until a real one-line summary is written. Deliberately says nothing that isn't known. */
 const genericSummary: Record<ProjectCategory, Localized> = {
@@ -77,33 +87,80 @@ const genericSummary: Record<ProjectCategory, Localized> = {
 
 export const summaryOf = (project: Project): Localized => project.summary ?? genericSummary[project.category]
 
-/**
- * ALL projects that may be shown on the site. Order matters (cards, hero, Works page).
- * Categories, hero picks and statuses are PROVISIONAL — see docs/content/projects.md.
- */
-export const projects: Project[] = [
-  { slug: 'simlab-elektronik', title: 'Simlab Elektronik', category: 'ARLearning', status: portfolioStatus, ambient: '#5f86a8', artwork: 'art-spatial', hero: true, featured: true, slides: placeholderSlides('art-spatial') },
-  { slug: 'interaksi-pecahan-mtk', title: 'Interaksi Pecahan MTK', category: 'ARLearning', status: portfolioStatus, ambient: '#9a754d', artwork: 'art-animal', hero: true, featured: true, slides: placeholderSlides('art-animal') },
-  { slug: 'house-effect-tiktok-ar', title: 'House Effect — TikTok AR Filter', category: 'ARBrand', status: { en: 'Prototype', id: 'Prototipe' }, ambient: '#b06a82', artwork: 'art-radiant', hero: true, featured: true, slides: placeholderSlides('art-radiant') },
-  {
-    slug: 'animal-chase',
-    title: 'Animal Chase',
-    category: 'Games',
-    status: { en: 'In development', id: 'Dalam pengembangan' },
-    ambient: '#6f8f5a',
-    artwork: 'art-animal',
-    featured: true,
-    summary: { en: 'An independent game currently in development.', id: 'Game independen yang sedang dalam pengembangan.' },
-    slides: placeholderSlides('art-animal'),
-  },
-  { slug: 'interaksi-peluang-mtk', title: 'Interaksi Peluang MTK', category: 'ARLearning', status: portfolioStatus, ambient: '#7d6a9a', artwork: 'art-experiment', slides: placeholderSlides('art-experiment') },
-  { slug: 'elektronika-listrik', title: 'Elektronika Listrik', category: 'ARLearning', status: portfolioStatus, ambient: '#4f8a82', artwork: 'art-spatial', slides: placeholderSlides('art-spatial') },
-  { slug: 'dokter-gigi', title: 'Dokter Gigi', category: 'ARLearning', status: portfolioStatus, ambient: '#8c665d', artwork: 'art-radiant', slides: placeholderSlides('art-radiant') },
+const isCategory = (value: string): value is ProjectCategory => value === 'ARLearning' || value === 'ARBrand' || value === 'Games'
+const isStatus = (value: string | undefined): value is ProjectStatus => Boolean(value && value in statusLabels)
+
+/** Ask the Sanity image CDN for a sensible size/format. Other URLs are left alone. */
+const sized = (url: string | undefined, width: number): string | undefined => {
+  if (!url) return undefined
+  if (!url.includes('cdn.sanity.io/images')) return url
+  return `${url}${url.includes('?') ? '&' : '?'}w=${width}&auto=format`
+}
+
+const placeholderSlides = (artwork: string): CardSlide[] => [
+  { artwork, variant: 1 },
+  { artwork, variant: 2 },
+  { artwork, variant: 3 },
 ]
+
+function mediaSlides(raw: RawSlide[] | undefined, width: number): CardSlide[] {
+  return (raw ?? []).flatMap((slide): CardSlide[] => {
+    if (slide._type === 'imageSlide' && slide.image) return [{ image: sized(slide.image, width) }]
+    if (slide._type === 'videoSlide' && slide.video) return [{ video: slide.video, poster: sized(slide.poster, width) }]
+    return []
+  })
+}
+
+function mapProject(raw: RawProject, index: number): Project | undefined {
+  if (!raw.slug || !raw.title || !isCategory(raw.category)) return undefined
+  const artwork = artworkCycle[index % artworkCycle.length]
+  const cards = mediaSlides(raw.slides, 1400)
+  const cover = mediaSlides(raw.slides, 2000)[0]
+  const story = {
+    challenge: toLocalized(raw.story?.challenge),
+    approach: toLocalized(raw.story?.approach),
+    result: toLocalized(raw.story?.result),
+  }
+
+  return {
+    slug: raw.slug,
+    title: raw.title,
+    category: raw.category,
+    status: statusLabels[isStatus(raw.status) ? raw.status : 'portfolio'],
+    ambient: raw.ambientColor && /^#[0-9a-f]{6}$/i.test(raw.ambientColor) ? raw.ambientColor : categoryAmbient[raw.category],
+    artwork,
+    slides: cards.length ? cards : placeholderSlides(artwork),
+    hero: raw.showInHero,
+    featured: raw.showOnHome,
+    summary: toLocalized(raw.summary),
+    origin: raw.origin === 'client' || raw.origin === 'self-initiated' ? raw.origin : undefined,
+    role: toLocalized(raw.role),
+    year: raw.year?.trim() || undefined,
+    platform: raw.platform?.trim() || undefined,
+    tools: raw.tools?.filter(Boolean),
+    links: raw.links?.flatMap((link) => (link.url ? [{ label: toLocalized(link.label) ?? { id: link.url, en: link.url }, href: link.url }] : [])),
+    story: story.challenge || story.approach || story.result ? story : undefined,
+    mediaType: cover ? (cover.video ? 'video' : 'image') : undefined,
+    image: cover?.image,
+    video: cover?.video,
+    poster: cover?.poster,
+  }
+}
+
+/** ALL projects shown on the site, in CMS order ("Urutan tampil"). */
+export const projects: Project[] = snapshot.projects.flatMap((raw, index) => mapProject(raw, index) ?? [])
 
 export const findProject = (slug: string) => projects.find((project) => project.slug === slug)
 
-/** Shape the hero carousel expects. Derived from `projects` — edit the data above, not this. */
+/** Hero carousel = projects flagged "Tampilkan di hero" (fallback: the first three). */
+const heroPicks = projects.filter((project) => project.hero)
+export const heroProjects = (heroPicks.length ? heroPicks : projects.slice(0, 3)).slice(0, 5)
+
+/** Home teaser = projects flagged "Tampilkan di Home" (fallback: the first four). */
+const teaserPicks = projects.filter((project) => project.featured)
+export const teaserProjects = (teaserPicks.length ? teaserPicks : projects.slice(0, 4)).slice(0, 6)
+
+/** Shape the hero carousel expects. Derived from `projects`. */
 export type ProjectSlide = {
   id: string
   title: string
@@ -119,19 +176,17 @@ export type ProjectSlide = {
   poster?: string
 }
 
-export const featuredProjects: ProjectSlide[] = projects
-  .filter((project) => project.hero)
-  .map((project) => ({
-    id: project.slug,
-    title: project.title,
-    category: project.category,
-    description: summaryOf(project),
-    status: project.status,
-    ambient: project.ambient,
-    artwork: project.artwork,
-    href: `#/work/${project.slug}`,
-    mediaType: project.mediaType,
-    image: project.image,
-    video: project.video,
-    poster: project.poster,
-  }))
+export const featuredProjects: ProjectSlide[] = heroProjects.map((project) => ({
+  id: project.slug,
+  title: project.title,
+  category: project.category,
+  description: summaryOf(project),
+  status: project.status,
+  ambient: project.ambient,
+  artwork: project.artwork,
+  href: `#/work/${project.slug}`,
+  mediaType: project.mediaType,
+  image: project.image,
+  video: project.video,
+  poster: project.poster,
+}))

@@ -85,7 +85,7 @@ Home · Services · Works + Project detail · About · Contact (email saja) · P
 | **0** | Arah, scope, spec halaman | **sedang dikerjakan** (dokumen ini) |
 | **1** | Prototype → siap tampil | berjalan; shell dan hero selesai |
 | **2** | Deploy + infrastruktur (Cloudflare, domain, email, URL asli, SEO, form) | belum mulai |
-| **3** | CMS (Sanity) | belum mulai |
+| **3** | CMS (Sanity) | **dimulai lebih awal (v0.8)**: skema, Studio, pipeline build selesai; menunggu akun Sanity dan pengisian konten oleh pemilik |
 | **4** | Launch + iterasi berdasarkan angka | belum mulai |
 | **5** | Ekosistem UNION (paket bersama, guideline, situs lain) | belum mulai |
 

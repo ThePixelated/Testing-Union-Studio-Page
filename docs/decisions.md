@@ -25,6 +25,13 @@ Terakhir diperbarui: 14 Nov 2026.
 | D18 | Navbar: Works · About · Contact (+ Network, bahasa, CTA); Services ditambah saat halamannya jadi; Career dan News tidak masuk | Diusulkan | |
 | D19 | Animal Chase = halaman proyek biasa sampai dekat rilis | Diusulkan | |
 | D20 | Hanya klaim *Verified* / *User-confirmed* yang dipublikasikan | Diputuskan (handoff) | |
+| D21 | **CMS (Sanity) dimulai sekarang**, bukan menunggu semua halaman jadi | Diputuskan (24 Nov) | Pemilik yang akan mengisi konten; struktur sudah cukup jelas. Risiko schema berubah dimitigasi: field opsional, fallback ke teks bawaan |
+| D22 | Dua bahasa dengan **field-level localization** (`{id, en}` dalam satu dokumen; ID wajib, EN opsional → fallback ke ID) | Diputuskan | Lihat `cms/content-model.md` |
+| D23 | Konten diambil **saat build** (snapshot), bukan oleh browser; publish memicu build lewat webhook; snapshot di-commit sebagai cadangan | Diputuskan | Cepat, murah, tidak bergantung pada API saat pengunjung membuka situs |
+| D24 | Hosting: **Cloudflare Pages terhubung ke repo GitHub**; GitHub hanya sumber kode; GitHub Pages dimatikan setelahnya | Diputuskan | |
+| D25 | Teks antarmuka dan tata letak tetap di kode; yang masuk CMS: proyek, teks Home/About, pengaturan kontak | Diputuskan | |
+| D26 | Form kontak: **opsi 3** (email + template pesan) untuk sekarang | Diputuskan (24 Nov) | |
+| D27 | Isi deskripsi proyek dan konten lain diisi sendiri oleh pemilik lewat Studio | Diputuskan | Menggantikan lembar `content/projects.md` sebagai tempat isi |
 
 ## Pertanyaan terbuka
 
@@ -35,7 +42,7 @@ Terakhir diperbarui: 14 Nov 2026.
 | P3 | Pilih **3 proyek untuk hero** dan **4 untuk teaser Home** (sementara: Simlab Elektronik, Interaksi Pecahan MTK, House Effect di hero; + Animal Chase di teaser) | Home |
 | P4 | Setiap proyek: karya **klien** atau **mandiri/kuliah**? Boleh menyebut nama klien/institusi? | Label kejujuran, About |
 | P5 | Setuju definisi "interaksi" di `roadmap.md` §2? | KPI |
-| P6 | Layanan form (Q7 di bawah): pilih opsi saat Fase 2 | Contact Fase 2 |
+| ~~P6~~ | ~~Layanan form~~ → diputuskan opsi 3 (D26) | — |
 
 ### Penjelasan P6 (dulu Q7): "layanan form"
 Situs ini statis (file HTML/JS di Cloudflare), jadi **tidak punya server** yang bisa menerima isi form dan mengirimnya ke email lo. Form berstruktur butuh "penerima". Opsi:

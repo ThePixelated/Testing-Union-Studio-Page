@@ -1,4 +1,5 @@
-import { projects } from '../data/projects'
+import { featuredProjects, teaserProjects } from '../data/projects'
+import { useSiteContent } from '../content/site'
 import { useI18n } from '../i18n'
 import AboutPreview from './AboutPreview'
 import Lines from './Lines'
@@ -7,11 +8,11 @@ import ProjectHero from './ProjectHero'
 
 export default function HomePage() {
   const { t } = useI18n()
-  const featured = projects.filter((project) => project.featured)
+  const site = useSiteContent()
 
   return (
     <>
-      <ProjectHero />
+      {featuredProjects.length > 0 && <ProjectHero />}
       <AboutPreview />
 
       {/* Teaser only: the full catalogue (with filters) is the Works page. */}
@@ -21,7 +22,7 @@ export default function HomePage() {
           <p className="section-aside">{t.works.aside}</p>
         </div>
         <div className="project-grid">
-          {featured.map((project, order) => <ProjectCard key={project.slug} project={project} order={order} />)}
+          {teaserProjects.map((project, order) => <ProjectCard key={project.slug} project={project} order={order} />)}
         </div>
         <p className="view-all"><a className="text-link" href="#/work">{t.works.viewAll} <span>↗</span></a></p>
       </section>
@@ -31,10 +32,10 @@ export default function HomePage() {
           <div>
             <p className="eyebrow">{t.capabilities.eyebrow}</p>
             <h2><Lines lines={t.capabilities.heading} /></h2>
-            <p className="capabilities-copy">{t.capabilities.copy}</p>
+            <p className="capabilities-copy">{site.capabilities.copy}</p>
           </div>
           <div className="capability-list">
-            {t.capabilities.items.map((item, index) => <div className="capability-row" key={item}><span>0{index + 1}</span><strong>{item}</strong><span>↗</span></div>)}
+            {site.capabilities.items.map((item, index) => <div className="capability-row" key={item}><span>0{index + 1}</span><strong>{item}</strong><span>↗</span></div>)}
           </div>
         </div>
       </section>

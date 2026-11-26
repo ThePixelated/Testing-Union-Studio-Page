@@ -5,6 +5,7 @@ import type { ProjectSlide } from '../data/projects'
 import { assetUrl } from '../lib/assets'
 import { timing } from '../lib/carouselTiming'
 import { usePrefersReducedMotion } from '../hooks/useMediaQuery'
+import { useSiteContent } from '../content/site'
 import { useI18n } from '../i18n'
 
 /* Auto-advance timing lives in src/lib/carouselTiming.ts (image 4 s, hover 7 s, video end + 2.5 s).
@@ -114,6 +115,7 @@ function SlideVisual({
 export default function ProjectHero() {
   const reducedMotion = usePrefersReducedMotion()
   const { lang, t } = useI18n()
+  const site = useSiteContent()
   const [{ active, prev }, setSlides] = useState<SlideState>({ active: 0, prev: null })
   const [userPaused, setUserPaused] = useState(false)
   const [hovering, setHovering] = useState(false)
@@ -257,9 +259,9 @@ export default function ProjectHero() {
 
       <div className="hero-inner">
         <div className="hero-intro">
-          <p className="eyebrow">{t.hero.eyebrow}</p>
-          <h1>{t.hero.line1}<br /><em>{t.hero.em}</em> {t.hero.rest}</h1>
-          <p className="hero-subtitle">{t.hero.subtitle}</p>
+          <p className="eyebrow">{site.hero.eyebrow}</p>
+          <h1>{site.hero.line1}<br /><em>{site.hero.em}</em> {site.hero.rest}</h1>
+          <p className="hero-subtitle">{site.hero.subtitle}</p>
         </div>
 
         <div className="hero-bottom">

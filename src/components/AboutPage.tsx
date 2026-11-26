@@ -1,3 +1,4 @@
+import { useSiteContent } from '../content/site'
 import { useI18n } from '../i18n'
 import Lines from './Lines'
 
@@ -7,19 +8,20 @@ import Lines from './Lines'
  */
 export default function AboutPage() {
   const { t } = useI18n()
+  const site = useSiteContent()
   return (
     <>
       <section className="page-hero">
         <div className="section">
           <a className="back-link" href="#top">← {t.aboutPage.back}</a>
           <p className="eyebrow">{t.aboutPage.eyebrow}</p>
-          <h1><Lines lines={t.aboutPage.heading} /></h1>
+          <h1><Lines lines={site.aboutPage.heading} /></h1>
         </div>
       </section>
       <section className="about-page-body">
         <div className="section">
-          <p className="about-statement">{t.aboutPage.statement}</p>
-          <p className="about-body">{t.aboutPage.body}</p>
+          <p className="about-statement">{site.aboutPage.statement}</p>
+          <p className="about-body">{site.aboutPage.body}</p>
         </div>
       </section>
     </>

@@ -1,6 +1,6 @@
 # Hero carousel — how it works
 
-Component: `src/components/ProjectHero.tsx` · Data: `src/data/projects.ts` (`featuredProjects`)
+Component: `src/components/ProjectHero.tsx` · Data: projects flagged "Tampilkan di carousel hero" in Sanity (see `cms/content-model.md`; mapped in `src/data/projects.ts` → `featuredProjects`)
 
 ## Behaviour
 Auto-advance timing is shared by the hero and the Selected Works cards, in one place: `src/lib/carouselTiming.ts`.
@@ -52,7 +52,7 @@ Logo: set `logo.src` in `src/data/brand.ts` after adding the file to `public/bra
 
 ## Selected Works cards
 `src/components/ProjectCard.tsx`: each card is a carousel that auto-advances with the same timing as the hero (4 s, 7 s while hovered, video end + 2.5 s). Extra rules: only cards that are on screen animate; the first countdowns are staggered by 0.7 s per card so the grid doesn't flip all at once; keyboard focus pauses a card. Arrows (manual) are hidden until the cursor is near the left/right edge, same reveal as the hero.
-Slides come from `projects[].slides` in `src/data/projects.ts`; the current ones are CSS placeholders (`artwork` + `variant`). Replace with `{ image: 'media/…jpg' }` or `{ video, poster }`.
+Slides come from each project's *Gambar & video* in the Sanity Studio (first item = cover). Projects without media show CSS placeholder artwork. Videos play only while the card is hovered or active.
 
 ## Network dropdown
 Every level in `src/data/network.ts` (UNION, divisions, units) can be a link: set `status: 'live'` + `href`. Until then headings are plain text and units show "Soon".

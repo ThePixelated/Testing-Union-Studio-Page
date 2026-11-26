@@ -1,3 +1,5 @@
+> **Superseded (24 Nov 2026):** the model actually implemented is described in `cms/content-model.md` and `../studio/schemaTypes/`. This file is the original proposal from the handoff.
+
 # Proposed Sanity Content Model
 
 This is a planning document. Schemas are not yet implemented.

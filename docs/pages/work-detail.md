@@ -26,8 +26,8 @@
 - Jangan sebut klien, angka, atau dampak yang tidak bisa dibuktikan.
 - Peran jelas ("saya mengerjakan X") — jangan mengklaim pekerjaan tim.
 
-## Data (sudah didukung di `src/data/projects.ts`)
-Wajib: `slug`, `title`, `category`, `status`, `ambient`, `artwork`, `slides`. Opsional (bagian halaman hanya tampil jika terisi): `summary`, `origin` (klien/mandiri), `role`, `year`, `platform`, `tools`, `links`, `story` (`challenge`/`approach`/`result`), media di `slides`. Nanti dipetakan ke "Suggested Project fields" Sanity (handoff §9).
+## Data (dari Sanity, dokumen `project` — lihat `../cms/content-model.md`)
+Wajib: judul, slug, kategori. Opsional (bagian halaman hanya tampil jika terisi): status, jenis proyek, ringkasan, peran, tahun, platform, alat, studi kasus, tautan, gambar/video.
 
 ## State
 Slug tidak ditemukan → 404 · media gagal dimuat → fallback gambar poster.

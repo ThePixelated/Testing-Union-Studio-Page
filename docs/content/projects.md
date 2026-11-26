@@ -1,5 +1,7 @@
 # Lembar proyek
 
+> **Update 24 Nov:** konten sekarang diisi langsung di **Sanity Studio** (lihat `../cms/setup.md`). Lembar ini tinggal jadi daftar periksa dan catatan.
+
 Isi lembar ini untuk setiap proyek. **Hanya tulis yang benar dan boleh dipublikasi.** Kosongkan yang belum pasti — halaman proyek otomatis menyembunyikan bagian yang kosong. Boleh juga dijawab langsung di chat dengan Claude; nanti dimasukkan ke `src/data/projects.ts`.
 
 ## Template (per proyek)
@@ -36,5 +38,5 @@ Isi lembar ini untuk setiap proyek. **Hanya tulis yang benar dan boleh dipublika
 
 `?` = belum diketahui. Jangan ditebak.
 
-## Cara mengisi `src/data/projects.ts`
-Field opsional yang sudah didukung: `summary`, `origin` (`'client'` / `'self-initiated'`), `role`, `year`, `platform`, `tools`, `links`, `story` (`challenge` / `approach` / `result`), dan `slides` (gambar/video). Halaman proyek hanya menampilkan yang ada isinya.
+## Cara mengisi
+Buka Studio → **Proyek** → pilih proyek. Field yang tersedia: ringkasan, jenis proyek, peran, tahun, platform, alat, studi kasus (tantangan/pendekatan/hasil), tautan, gambar/video. Halaman proyek hanya menampilkan yang ada isinya.
